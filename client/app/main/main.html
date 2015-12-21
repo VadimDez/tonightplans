@@ -6,9 +6,9 @@
     <p class="lead">Don't have any plans? See if you can find something around you</p>
 
     <div class="input-group">
-      <input type="text" class="form-control" placeholder="Search for locations with Yelp...">
+      <input type="text" class="form-control" placeholder="Search for locations with Yelp..." ng-model="searchString">
       <span class="input-group-btn">
-        <button class="btn btn-default" type="button">Search</button>
+        <button class="btn btn-default" type="button" ng-click="main.search(searchString)">Search</button>
       </span>
     </div>
   </div>
@@ -17,8 +17,8 @@
 <div class="container">
   <div class="row">
     <div class="col-lg-12">
-      <ul class="nav nav-tabs nav-stacked col-md-4 col-lg-4 col-sm-6" ng-repeat="thing in main.awesomeThings">
-        <li><a href="#" tooltip="{{thing.info}}">{{thing.name}}</a></li>
+      <ul class="nav nav-tabs nav-stacked col-sm-12" ng-repeat="place in main.places">
+        <li><a href="#">{{ place.name }}</a></li>
       </ul>
     </div>
   </div>

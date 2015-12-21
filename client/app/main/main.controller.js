@@ -4,24 +4,15 @@
 
 class MainController {
 
-  constructor($http) {
-    this.$http = $http;
-    this.awesomeThings = [];
+  constructor(placesService) {
+    this.places = [];
+    this.placesService = placesService;
+  }
 
-    $http.get('/api/things').then(response => {
-      this.awesomeThings = response.data;
+  search(location) {
+    this.placesService.search(location).then(data => {
+      this.places = data.data.businesses;
     });
-  }
-
-  addThing() {
-    if (this.newThing) {
-      this.$http.post('/api/things', { name: this.newThing });
-      this.newThing = '';
-    }
-  }
-
-  deleteThing(thing) {
-    this.$http.delete('/api/things/' + thing._id);
   }
 }
 
