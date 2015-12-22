@@ -6,7 +6,12 @@ class placesService {
   }
 
   search(location) {
-    return this.$http.get('/api/places', {location: 'test'});
+    return this.$http({
+      url: '/api/places',
+      method: 'GET',
+      params: {location: location}
+      //paramSerializer: '$httpParamSerializerJQLike'
+    });
   }
 }
 

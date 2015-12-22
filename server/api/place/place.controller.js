@@ -71,8 +71,8 @@ export function index(req, res) {
     oauth_timestamp : (new Date()).getTime(),
     oauth_signature_method : 'HMAC-SHA1',
     oauth_version : '1.0',
-    term: 'food',
-    location: 'San Francisco'
+    term: 'bar',
+    location: req.query.location
   };
 
   // generates a RFC 3986 encoded, BASE64 encoded HMAC-SHA1 hash
