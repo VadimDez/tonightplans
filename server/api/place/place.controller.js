@@ -1,10 +1,7 @@
 /**
  * Using Rails-like standard naming convention for endpoints.
  * GET     /api/places              ->  index
- * POST    /api/places              ->  create
- * GET     /api/places/:id          ->  show
- * PUT     /api/places/:id          ->  update
- * DELETE  /api/places/:id          ->  destroy
+ * PATCH   /api/places/:id          ->  update users
  */
 
 'use strict';
@@ -57,6 +54,10 @@ function saveUpdates(user) {
         return updated;
       });
   };
+}
+
+function generateRandomString() {
+  return 'kllo9940pd9333jh';
 }
 
 // Gets a list of Places
@@ -179,9 +180,9 @@ function getPlacesFromYelp(location) {
     var httpMethod = 'GET';
     var url = 'https://api.yelp.com/v2/search';
     var parameters = {
-      oauth_consumer_key : 'RLZnAqoX1kYt5NujM_-wjw',
-      oauth_token : 'CAR1HJ2WXVAGGvHJhgHczOlLb-8rbmry',
-      oauth_nonce : 'kllo9940pd9333jh',
+      oauth_consumer_key : process.env.YELP_CUSTOMER_KEY,
+      oauth_token : process.env.YELP_TOKEN,
+      oauth_nonce : generateRandomString(),
       oauth_timestamp : (new Date()).getTime(),
       oauth_signature_method : 'HMAC-SHA1',
       oauth_version : '1.0',
@@ -189,16 +190,8 @@ function getPlacesFromYelp(location) {
       location: location
     };
 
-    // generates a RFC 3986 encoded, BASE64 encoded HMAC-SHA1 hash
-    //parameters.oauth_signature = oauthSignature.generate(httpMethod, url, parameters, process.env.YELP_CUSTOMER_SECRET, process.env.YELP_TOKEN_SECRET);
-
     // generates a BASE64 encode HMAC-SHA1 hash
     parameters.oauth_signature = oauthSignature.generate(httpMethod, url, parameters, process.env.YELP_CUSTOMER_SECRET, process.env.YELP_TOKEN_SECRET, { encodeSignature: true});
-
-
-    //parameters.oauth_nonce = 'kllo9940pd9333jh';
-    //parameters.oauth_timestamp = (new Date()).getTime();
-    //parameters.oauth_signature_method = 'HMAC-SHA1';
 
     url += '?' + Object.keys(parameters).map(key => {
       return key + '=' + parameters[key];
