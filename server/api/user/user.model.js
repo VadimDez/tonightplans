@@ -20,7 +20,11 @@ var UserSchema = new Schema({
   provider: String,
   salt: String,
   twitter: {},
-  github: {}
+  github: {},
+  location: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Location'
+  }
 });
 
 /**

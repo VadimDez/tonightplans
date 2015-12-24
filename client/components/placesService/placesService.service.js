@@ -13,6 +13,10 @@ class placesService {
       //paramSerializer: '$httpParamSerializerJQLike'
     });
   }
+
+  patch(id) {
+    return this.$http.patch('/api/places/' + id);
+  }
 }
 
 angular.module('tonightplansApp')

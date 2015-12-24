@@ -1,15 +1,15 @@
 /**
- * Thing model events
+ * Location model events
  */
 
 'use strict';
 
 import {EventEmitter} from 'events';
-var Thing = require('./thing.model');
-var ThingEvents = new EventEmitter();
+var Location = require('./location.model.js');
+var LocationEvents = new EventEmitter();
 
 // Set max event listeners (0 == unlimited)
-ThingEvents.setMaxListeners(0);
+LocationEvents.setMaxListeners(0);
 
 // Model events
 var events = {
@@ -20,14 +20,14 @@ var events = {
 // Register the event emitter to the model events
 for (var e in events) {
   var event = events[e];
-  Thing.schema.post(e, emitEvent(event));
+  Location.schema.post(e, emitEvent(event));
 }
 
 function emitEvent(event) {
   return function(doc) {
-    ThingEvents.emit(event + ':' + doc._id, doc);
-    ThingEvents.emit(event, doc);
+    LocationEvents.emit(event + ':' + doc._id, doc);
+    LocationEvents.emit(event, doc);
   }
 }
 
-export default ThingEvents;
+export default LocationEvents;

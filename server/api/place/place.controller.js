@@ -12,6 +12,8 @@
 import _ from 'lodash';
 var Place = require('./place.model');
 var oauthSignature = require('oauth-signature');
+var Location = require('./location.model.js');
+var https = require('https');
 
 function handleError(res, statusCode) {
   statusCode = statusCode || 500;
@@ -39,92 +41,187 @@ function handleEntityNotFound(res) {
   };
 }
 
-function saveUpdates(updates) {
+function saveUpdates(user) {
   return function(entity) {
-    var updated = _.merge(entity, updates);
-    return updated.saveAsync()
+    //var updated = _.merge(entity, updates);
+    let index = entity.users.indexOf(user);
+
+    if (index === -1) {
+      entity.users.push(user);
+    } else {
+      entity.users.splice(index, 1);
+    }
+
+    return entity.saveAsync()
       .spread(updated => {
         return updated;
       });
   };
 }
 
-function removeEntity(res) {
-  return function(entity) {
-    if (entity) {
-      return entity.removeAsync()
-        .then(() => {
-          res.status(204).end();
-        });
-    }
-  };
-}
-
 // Gets a list of Places
 export function index(req, res) {
-  var httpMethod = 'GET';
-  var url = 'https://api.yelp.com/v2/search';
-  var parameters = {
-    oauth_consumer_key : 'RLZnAqoX1kYt5NujM_-wjw',
-    oauth_token : 'CAR1HJ2WXVAGGvHJhgHczOlLb-8rbmry',
-    oauth_nonce : 'kllo9940pd9333jh',
-    oauth_timestamp : (new Date()).getTime(),
-    oauth_signature_method : 'HMAC-SHA1',
-    oauth_version : '1.0',
-    term: 'bar',
-    location: req.query.location
-  };
+  var locationName = req.query.location;
 
-  // generates a RFC 3986 encoded, BASE64 encoded HMAC-SHA1 hash
-  //parameters.oauth_signature = oauthSignature.generate(httpMethod, url, parameters, process.env.YELP_CUSTOMER_SECRET, process.env.YELP_TOKEN_SECRET);
+  if (!locationName) {
+    res
+      .status(400)
+      .send({
+        errors: [{
+          status: 400,
+          title: 'location is missing'
+        }]
+      })
+      .end();
 
-  // generates a BASE64 encode HMAC-SHA1 hash
-  parameters.oauth_signature = oauthSignature.generate(httpMethod, url, parameters, process.env.YELP_CUSTOMER_SECRET, process.env.YELP_TOKEN_SECRET, { encodeSignature: false});
+    return;
+  }
 
-  var https = require('https');
+  locationName = locationName.toLowerCase();
 
-  url += '?' + Object.keys(parameters).map(key => {
+  Location.findAsync({name: locationName})
+    .then((locations) => {
+
+      if (!locations.length) {
+        Location.createAsync({name: locationName})
+          .then(location => {
+
+            getPlaces(location)
+              .then(responseWithResult(res))
+              .catch(handleError(res, 400));
+          })
+          .catch(handleError(res, 400));
+
+        return;
+      }
+
+      getPlaces(locations[0])
+        .then(responseWithResult(res))
+        .catch(handleError(res, 400));
+    })
+    .catch(handleError(res, 400));
+}
+
+function getPlaces(location) {
+  return new Promise(function (resolve, reject) {
+    var requested = new Date(location.requested);
+    var now = new Date();
+    requested.setHours(0, 0, 0);
+    now.setHours(0, 0, 0);
+
+    if (now.toDateString() !== requested.toDateString()) {
+      Location.updateAsync({name: location.name}, {$set: {requested: Date.now()}})
+        .catch(error => {
+          reject(Error(error));
+        });
+
+      getPlacesFromYelp(location.name)
+        .then(json => {
+
+          // insert places
+          insertYelpPlaces(json.businesses, location._id)
+            .then(places => {
+              resolve(places);
+            })
+            .catch(error => {
+              reject(Error(error));
+            });
+        })
+        .catch(function (error) {
+          reject(Error(error));
+        });
+
+      return;
+    }
+
+    Place.findAsync({location: location._id})
+      .then(places => {
+        resolve(places);
+      })
+      .catch(error => {
+        reject(Error(error));
+      });
+  });
+}
+
+
+
+function insertYelpPlaces(places, locationId) {
+  return new Promise(function (resolve, reject) {
+    var placesList = places.map(function (place) {
+      return {
+        yelp_id: place.id,
+        name: place.name,
+        image: place.image_url,
+        rating: place.rating,
+        review: place.snippet_text,
+        location: locationId,
+        users: [],
+        categories: place.categories.map(function (category) {
+          return category[0]
+        })
+      };
+    });
+
+    Place.collection.insert(placesList, {}, function (err, docs) {
+
+      if (err) {
+        reject(Error(err));
+      } else {
+        resolve(docs.ops);
+      }
+    });
+  });
+}
+
+function getPlacesFromYelp(location) {
+  return new Promise(function (resolve, reject) {
+    var httpMethod = 'GET';
+    var url = 'https://api.yelp.com/v2/search';
+    var parameters = {
+      oauth_consumer_key : 'RLZnAqoX1kYt5NujM_-wjw',
+      oauth_token : 'CAR1HJ2WXVAGGvHJhgHczOlLb-8rbmry',
+      oauth_nonce : 'kllo9940pd9333jh',
+      oauth_timestamp : (new Date()).getTime(),
+      oauth_signature_method : 'HMAC-SHA1',
+      oauth_version : '1.0',
+      term: 'bar',
+      location: location
+    };
+
+    // generates a RFC 3986 encoded, BASE64 encoded HMAC-SHA1 hash
+    //parameters.oauth_signature = oauthSignature.generate(httpMethod, url, parameters, process.env.YELP_CUSTOMER_SECRET, process.env.YELP_TOKEN_SECRET);
+
+    // generates a BASE64 encode HMAC-SHA1 hash
+    parameters.oauth_signature = oauthSignature.generate(httpMethod, url, parameters, process.env.YELP_CUSTOMER_SECRET, process.env.YELP_TOKEN_SECRET, { encodeSignature: true});
+
+
+    //parameters.oauth_nonce = 'kllo9940pd9333jh';
+    //parameters.oauth_timestamp = (new Date()).getTime();
+    //parameters.oauth_signature_method = 'HMAC-SHA1';
+
+    url += '?' + Object.keys(parameters).map(key => {
       return key + '=' + parameters[key];
     }).join('&');
 
-  https.get(url, function(resp) {
-    var body = '';
+    https.get(url, function(res) {
+      var body = '';
 
-    resp.on('data', function (data) {
-      body += data;
-    });
+      res.on('data', function (data) {
+        body += data;
+      });
 
-    resp.on('end', function () {
-      res.send(JSON.parse(body));
-      res.end();
+      res.on('end', function () {
+        resolve(JSON.parse(body))
+      });
+
+      // consume response body
+      res.resume();
+    }).on('error', function(e) {
+      console.log("Got error: " + e.message);
+      reject(Error(e.message));
     });
-    // consume response body
-    resp.resume();
-  }).on('error', function(e) {
-    console.log("Got error: " + e.message);
-    res.statusCode = 400;
-    res.end();
   });
-
-
-  //Place.findAsync()
-  //  .then(responseWithResult(res))
-  //  .catch(handleError(res));
-}
-
-// Gets a single Place from the DB
-export function show(req, res) {
-  Place.findByIdAsync(req.params.id)
-    .then(handleEntityNotFound(res))
-    .then(responseWithResult(res))
-    .catch(handleError(res));
-}
-
-// Creates a new Place in the DB
-export function create(req, res) {
-  Place.createAsync(req.body)
-    .then(responseWithResult(res, 201))
-    .catch(handleError(res));
 }
 
 // Updates an existing Place in the DB
@@ -134,15 +231,7 @@ export function update(req, res) {
   }
   Place.findByIdAsync(req.params.id)
     .then(handleEntityNotFound(res))
-    .then(saveUpdates(req.body))
+    .then(saveUpdates(req.user_id))
     .then(responseWithResult(res))
-    .catch(handleError(res));
-}
-
-// Deletes a Place from the DB
-export function destroy(req, res) {
-  Place.findByIdAsync(req.params.id)
-    .then(handleEntityNotFound(res))
-    .then(removeEntity(res))
     .catch(handleError(res));
 }

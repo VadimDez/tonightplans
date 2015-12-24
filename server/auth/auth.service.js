@@ -11,6 +11,11 @@ var validateJwt = expressJwt({
   secret: config.secrets.session
 });
 
+var validateJwtNotRequired = expressJwt({
+  secret: config.secrets.session,
+  credentialsRequired: false
+});
+
 /**
  * Attaches the user object to the request if authenticated
  * Otherwise returns 403
@@ -78,4 +83,14 @@ export function setTokenCookie(req, res) {
   var token = signToken(req.user._id, req.user.role);
   res.cookie('token', token);
   res.redirect('/');
+}
+
+export function attachUser() {
+  return compose()
+    .use(function (req, res, next) {
+      if (req.query && req.query.hasOwnProperty('access_token')) {
+        req.headers.authorization = 'Bearer ' + req.query.access_token;
+      }
+      validateJwtNotRequired(req, res, next);
+    });
 }
