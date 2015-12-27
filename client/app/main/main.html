@@ -1,47 +1,38 @@
-<navbar></navbar>
+<div class="background">
+  <navbar></navbar>
 
-<header class="hero-unit" id="banner">
-  <div class="container">
-    <h1>Tonight plans</h1>
-    <p class="lead">Don't have any plans? See if you can find something around you</p>
+  <header class="hero-unit" id="banner">
+    <div class="container">
+      <h1>Tonight plans</h1>
+      <p class="lead">Don't have any plans? See if you can find something around you</p>
 
-    <form novalidate>
-      <div class="input-group">
+      <form novalidate>
+        <div class="input-group">
           <input type="text" class="form-control" placeholder="Search for locations with Yelp..." ng-model="main.searchString">
           <span class="input-group-btn">
-            <button class="btn btn-default" type="submit" ng-click="main.search(main.searchString)">Search</button>
+            <button class="btn btn-default btn-search" type="submit" ng-click="main.search(main.searchString)">Search</button>
           </span>
-      </div>
-    </form>
-  </div>
-</header>
+        </div>
+      </form>
+    </div>
+  </header>
+</div>
 
-<div class="container">
+<section class="container">
   <div class="row">
-    <div class="col-lg-12">
-      <ul class="nav nav-tabs nav-stacked col-sm-12" ng-repeat="place in main.places">
-        <li>
-          <div class="media">
-            <div class="media-left">
-              <a href="#">
-                <img class="media-object" ng-src="{{ place.image }}" alt="{{ place.name }}">
-              </a>
-            </div>
-            <div class="media-body">
-              <h4 class="media-heading">{{ place.name }} <button type="button" class="btn btn-sm btn-primary" ng-click="main.patch(place)">{{ place.users.length }} Going</button></h4>
-              <div class="categories">
-                <span class="label label-default" ng-repeat="category in place.categories">{{ category }}</span>
-              </div>
 
-              <p class="review">
-                {{ place.review }}
-              </p>
-            </div>
-          </div>
-        </li>
-      </ul>
+    <div class="col-sm-6 col-md-3 place" ng-repeat="place in main.places">
+      <div class="thumbnail">
+        <img ng-src="{{ place.image }}" alt="{{ place.name }}" alt="...">
+        <div class="circle"></div>
+        <div class="caption">
+          <h3>{{ place.name }}</h3>
+          <p class="review">{{ place.review }}</p>
+          <p><a href="#" class="btn btn-primary btn-block going" role="button" ng-click="main.patch(place)">{{ place.users.length }} Going</a></p>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
 <footer></footer>

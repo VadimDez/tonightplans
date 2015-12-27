@@ -1,27 +1,115 @@
-.thing-form {
-  margin: 20px 0;
-}
+body {
+  background-color: #F0F0F0;
 
-#banner {
-  border-bottom: none;
-  margin-top: -20px;
+  footer a {
+    color: black;
+  }
 }
-
-#banner h1 {
-  font-size: 60px;
-  line-height: 1;
-  letter-spacing: -1px;
-}
-
-.hero-unit {
-  position: relative;
-  padding: 30px 15px;
-  color: #F5F5F5;
-  text-align: center;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
-  background: #4393B9;
-}
-
 .navbar-text {
   margin-left: 15px;
+}
+
+.navbar-default .navbar-text {
+  color: white;
+}
+
+.background {
+  background-image: url('/assets/images/bg.jpg');
+  background-position-y: -300px;
+  background-size: cover;
+
+  @media (max-width: 1000px) {
+    background-position-y: 0;
+  }
+
+  .navbar {
+    background-color: transparent;
+    border: none;
+  }
+
+  .navbar-default .navbar-nav > li > a {
+    color: #fff;
+    border: 1px solid white;
+    padding: 7px;
+    border-radius: 3px;
+    margin-left: 10px;
+    margin-right:  10px;
+    margin-top: 10px;
+  }
+
+  #banner {
+    border-bottom: none;
+    h1 {
+      font-size: 60px;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .btn-search {
+      background-color: transparent;
+      border: 1px solid white;
+      color: white;
+      padding-top: 7px;
+    }
+  }
+
+  .hero-unit {
+    position: relative;
+    padding: 30px 15px;
+    color: #F5F5F5;
+    text-align: center;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+    margin-top: 60px;
+    background-color: transparent;
+  }
+}
+
+section {
+  margin-top: 20px;
+
+  .place {
+    .thumbnail {
+      padding: 0;
+
+      border-color: #aaa;
+      &:hover {
+        border-color: black;
+      }
+
+      img {
+        width: 100%;
+      }
+
+      .circle {
+        width: 40px;
+        height: 40px;
+        background-color: black;
+        border-radius: 50%;
+        margin-top: -20px;
+        position: relative;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .caption {
+        h3 {
+          margin-top: 20px;
+          font-size: 18px;
+          text-align: center;
+        }
+        .review {
+          height: 105px;
+          text-align: center;
+        }
+        .going {
+          color: black;
+          background-color: transparent;
+          border-color: black;
+          &:hover {
+            font-weight: 500;
+          }
+        }
+      }
+    }
+  }
 }
