@@ -10,6 +10,7 @@ class MainController {
     this.placesService = placesService;
     this.$cookies = $cookies;
     this.searchString = '';
+    this.loading = false;
 
     this.isAuthenticated = Auth.isLoggedIn;
 
@@ -23,10 +24,17 @@ class MainController {
   }
 
   search(location) {
+    this.loading = true;
+    this.places = [];
     this.$cookies.put('lastLocation', location);
-    this.placesService.search(location).then(data => {
-      this.places = data.data;
-    });
+    this.placesService.search(location)
+      .then(data => {
+        this.loading = false;
+        this.places = data.data;
+      })
+      .catch(() => {
+        this.loading = false;
+      });
   }
 
   patch(place) {
