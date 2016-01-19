@@ -1,5 +1,7 @@
 # tonightplans
 
+FreeCodeCamp project
+
 [Demo](https://tonightplans.herokuapp.com/)
 
 ## Run
